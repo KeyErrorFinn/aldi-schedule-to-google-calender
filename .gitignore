@@ -1,0 +1,9 @@
+.credentials/*
+!.credentials/credentials_placeholder.json
+
+schedule_imgs/*
+!schedule_imgs/added
+schedule_imgs/added/*
+
+imagething.png
+.env
