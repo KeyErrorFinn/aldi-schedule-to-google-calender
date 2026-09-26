@@ -1,41 +1,62 @@
-<h1 align="center">
-  Aldi Schedule to Google Calender Program
-</h1>
+# ALDI Schedule to Google Calendar
 
-<p align="center">
-  <a href="https://github.com/KeyErrorFinn/aldi-schedule-to-google-calender/commits/main/"><img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/KeyErrorFinn/aldi-schedule-to-google-calender" /></a>
-  <a href="https://github.com/KeyErrorFinn/aldi-schedule-to-google-calender/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues-raw/KeyErrorFinn/aldi-schedule-to-google-calender" /></a>
-</p>
-<p align="center">
-  <a href="#"><img alt="Python" src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff" /></a>
-</p>
+A Python image-processing tool that reads mobile screenshots from the ALDI scheduling app and creates matching events in Google Calendar.
 
-
-This project is for using screenshots of ALDI work schedules to add the work day and times to a Google Calendar for easier time management.
-
-## Table of Contents
-- [Table of Contents](#table-of-contents)
-- [About The Project](#about-the-project)
-  - [How the program works](#how-the-program-works)
-  - [TO-DO](#to-do)
-
-## About the Project
 > [!WARNING]
-> The program only works with mobile screenshots of the schedule through the ALDI app. Desktop screenshots will fail.
+> The crop coordinates, colour templates, spacing, and OCR assumptions are tailored to a specific mobile screenshot layout. Desktop screenshots and changed app layouts are likely to fail.
 
-The project uses python to add the ALDI work dates and times to a Google Calender.
+## Processing flow
 
-The files also include a Batch file for easier running when used.
+1. Load `.jpg` and `.png` files from `schedule_imgs/`.
+2. Crop the known schedule region.
+3. Locate red and blue work-day markers using OpenCV template matching.
+4. Divide the screenshot into matching day sections.
+5. Use Tesseract OCR to extract the date and shift times.
+6. Check Google Calendar for an existing event with the configured name and time.
+7. Create missing events and move processed screenshots into `schedule_imgs/added/`.
 
-### How the program works:
-1) Uses a google account email from `.env` file and a `credentials.json` from the `.credentials/` folder to connect to your Google Calendar
-2) Goes through each image of a weeks schedule in the `schedule_imgs/` folder
-3) Finds what days are being worked on by seeing if it has a red vertical line or a blue vertical line
-4) Seperates the schedule into those days and gathers the day from the left and the time from the right
-5) Uses a predefined variable for the name of the event, and then uses the day, start time, and end time to add the event to the Google Calander
-6) Once done with all days in the image, it moves the image of the week's schedule into an `added/` folder
+## Requirements
 
-### TO-DO:
-- [x] <s>Create Program</s>
-- [x] <s>Adjust for longer days</s>
-- [ ] Make it more versalite by using any image instead of just mobile
+- Python 3
+- Tesseract OCR installed and available to `pytesseract`
+- A Google account and Calendar API OAuth desktop credentials
+- The packages in `requirements.txt`
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+## Setup
+
+1. Copy `.env.example` to `.env` and set the target calendar account:
+
+   ```dotenv
+   EMAIL=account@example.com
+   ```
+
+2. Put the Google OAuth client credentials at:
+
+   ```text
+   .credentials/credentials.json
+   ```
+
+3. Create `schedule_imgs/` and place the mobile schedule screenshots inside it.
+4. Review `event_name` near the top of `main.py`; it is currently set directly in the source.
+5. Keep `day_colour_imgs/` beside the script.
+
+Never commit the populated credentials file, OAuth tokens, private schedule screenshots, or the populated `.env`.
+
+## Running
+
+```bash
+python main.py
+```
+
+On Windows, `Run.bat` provides a shortcut.
+
+## Important behaviour
+
+- The current year is applied to recognised dates.
+- Existing events are checked by time range and `event_name` to reduce duplicates.
+- Successfully processed source images are moved, not copied.
+- OCR and template matching can be wrong. Review created events before relying on them.
